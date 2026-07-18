@@ -1,0 +1,15 @@
+streamlit==1.31.1
+plotly==5.18.0
+pandas==2.2.0
+openpyxl==3.1.2
+scikit-learn==1.4.0
+matplotlib==3.8.2
+seaborn==0.13.1
+numpy==1.26.3streamlit==1.31.1
+plotly==5.18.0
+pandas==2.2.0
+openpyxl==3.1.2
+scikit-learn==1.4.0
+matplotlib==3.8.2
+seaborn==0.13.1
+numpy==1.26.3
