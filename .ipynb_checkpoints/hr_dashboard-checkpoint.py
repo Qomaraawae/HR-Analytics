@@ -1,7 +1,6 @@
 # ========================================
 # HR ANALYTICS DASHBOARD - STREAMLIT
 # ========================================
-# Lokasi: /Users/macbookpro/Documents/UAD/MATKUL/INTELEJEN BISNIS/HR_Analytics/hr_dashboard.py
 # Jalankan: streamlit run hr_dashboard.py
 # ========================================
 
@@ -23,26 +22,45 @@ st.set_page_config(
 )
 
 # ========================================
-# LOAD DATA
+# LOAD DATA - MENGGUNAKAN PATH RELATIF
 # ========================================
 
 @st.cache_data
 def load_data():
-    base_path = '/Users/macbookpro/Documents/UAD/MATKUL/INTELEJEN BISNIS/HR_Analytics/'
-    data_path = os.path.join(base_path, 'Data', 'hr_data_for_dashboard.csv')
+    # Ambil direktori tempat file ini berada
+    base_path = os.path.dirname(os.path.abspath(__file__))
     
-    if os.path.exists(data_path):
-        df = pd.read_csv(data_path)
-        st.sidebar.success("✅ Data dari hasil analisis lengkap")
-    else:
-        # Fallback ke data asli
-        excel_path = os.path.join(base_path, 'HR_Analytics.xlsx')
+    # PRIORITAS 1: Cari CSV di folder Data
+    csv_path = os.path.join(base_path, 'Data', 'hr_data_for_dashboard.csv')
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        st.sidebar.success("✅ Data dari hr_data_for_dashboard.csv")
+        return df
+    
+    # PRIORITAS 2: Cari CSV di root
+    csv_root = os.path.join(base_path, 'hr_data_for_dashboard.csv')
+    if os.path.exists(csv_root):
+        df = pd.read_csv(csv_root)
+        st.sidebar.success("✅ Data dari hr_data_for_dashboard.csv (root)")
+        return df
+    
+    # PRIORITAS 3: Cari Excel di root (fallback)
+    excel_path = os.path.join(base_path, 'HR_Analytics.xlsx')
+    if os.path.exists(excel_path):
         df = pd.read_excel(excel_path, sheet_name='Sheet1')
         df.columns = df.columns.str.replace('ï»¿', '').str.replace('¬ª', '').str.replace('¬ø', '')
-        st.sidebar.warning("⚠️ Menggunakan data asli (tanpa prediksi)")
-    return df
+        st.sidebar.warning("⚠️ Menggunakan data dari Excel")
+        return df
+    
+    # Jika tidak ada data
+    st.error("❌ Data tidak ditemukan! Pastikan file hr_data_for_dashboard.csv ada di folder Data/")
+    return pd.DataFrame()
 
 df = load_data()
+
+# Jika data kosong, stop
+if df.empty:
+    st.stop()
 
 # ========================================
 # SIDEBAR FILTER
@@ -117,10 +135,7 @@ st.subheader("📈 Key Performance Indicators")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.metric(
-        label="Total Karyawan",
-        value=f"{len(filtered_df):,}"
-    )
+    st.metric(label="Total Karyawan", value=f"{len(filtered_df):,}")
 
 with col2:
     attrition_rate = filtered_df['Attrition'].value_counts(normalize=True).get('Yes', 0) * 100
@@ -133,25 +148,15 @@ with col2:
 
 with col3:
     avg_salary = filtered_df['MonthlyIncome'].mean()
-    st.metric(
-        label="Rata-rata Gaji",
-        value=f"${avg_salary:,.0f}"
-    )
+    st.metric(label="Rata-rata Gaji", value=f"${avg_salary:,.0f}")
 
 with col4:
     avg_years = filtered_df['YearsAtCompany'].mean()
-    st.metric(
-        label="Rata-rata Masa Kerja",
-        value=f"{avg_years:.1f} tahun"
-    )
+    st.metric(label="Rata-rata Masa Kerja", value=f"{avg_years:.1f} tahun")
 
 with col5:
     avg_satisfaction = filtered_df['JobSatisfaction'].mean()
-    st.metric(
-        label="Job Satisfaction",
-        value=f"{avg_satisfaction:.2f} / 4",
-        delta="⭐" * int(avg_satisfaction)
-    )
+    st.metric(label="Job Satisfaction", value=f"{avg_satisfaction:.2f} / 4")
 
 st.markdown("---")
 
